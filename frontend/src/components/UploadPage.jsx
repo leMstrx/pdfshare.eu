@@ -24,29 +24,38 @@ function UploadPage() {
       setError('Please select a PDF file first')
       return
     }
-
+  
     setIsUploading(true)
     setError(null)
-
+  
     const formData = new FormData()
     formData.append('file', file)
-
+  
     try {
+      console.log('Attempting to upload file:', file.name)
+      
       const response = await fetch('http://localhost:5000/upload', {
         method: 'POST',
         body: formData,
+        // Add these headers to help with debugging
+        // credentials: 'omit',
+        // mode: 'cors',
       })
-
+  
+      console.log('Response status:', response.status)
+      
       const data = await response.json()
-
+      console.log('Response data:', data)
+  
       if (!response.ok) {
         throw new Error(data.error || 'Upload failed')
       }
-
+  
       // Navigate to analytics page with the document ID
       navigate(`/analytics/${data.document_id}`)
     } catch (err) {
-      setError(err.message)
+      console.error('Upload error:', err)
+      setError(`Upload failed: ${err.message}`)
     } finally {
       setIsUploading(false)
     }

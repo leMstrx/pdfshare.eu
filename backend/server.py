@@ -5,19 +5,30 @@ import uuid
 import datetime
 import sqlite3
 import json
+import logging
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+# More comprehensive CORS setup
+CORS(app, resources={r"/*": {
+    "origins": "*", 
+    "methods": ["GET", "POST", "OPTIONS"],
+    "allow_headers": ["Content-Type", "Authorization"]
+}})
 
-# Configure upload folder
-UPLOAD_FOLDER = 'uploads'
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
+# Configure upload folder - use absolute path
+UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # Database setup
 def get_db_connection():
-    conn = sqlite3.connect('database.db')
+    db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'database.db')
+    conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -55,39 +66,54 @@ def hello():
 
 @app.route("/upload", methods=["POST"])
 def upload_pdf():
+    logger.debug("Upload request received")
+    logger.debug(f"Request files: {request.files}")
+    
     if 'file' not in request.files:
+        logger.debug("No file part in request")
         return jsonify({"error": "No file part"}), 400
     
     file = request.files['file']
     if file.filename == '':
+        logger.debug("Empty filename")
         return jsonify({"error": "No file selected"}), 400
+    
+    logger.debug(f"File name: {file.filename}")
     
     if file and file.filename.endswith('.pdf'):
         # Generate unique ID for document
         doc_id = str(uuid.uuid4())
+        logger.debug(f"Generated document ID: {doc_id}")
         
         # Save file
         filename = file.filename
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], f"{doc_id}.pdf")
+        logger.debug(f"Saving file to: {file_path}")
         file.save(file_path)
         
         # Store in database with 60-day expiry
-        conn = get_db_connection()
-        upload_date = datetime.datetime.now()
-        expiry_date = upload_date + datetime.timedelta(days=60)
-        
-        conn.execute(
-            "INSERT INTO documents (id, filename, upload_date, expiry_date) VALUES (?, ?, ?, ?)",
-            (doc_id, filename, upload_date, expiry_date)
-        )
-        conn.commit()
-        conn.close()
-        
-        return jsonify({
-            "document_id": doc_id,
-            "share_url": f"/view/{doc_id}"
-        }), 201
+        try:
+            conn = get_db_connection()
+            upload_date = datetime.datetime.now()
+            expiry_date = upload_date + datetime.timedelta(days=60)
+            
+            conn.execute(
+                "INSERT INTO documents (id, filename, upload_date, expiry_date) VALUES (?, ?, ?, ?)",
+                (doc_id, filename, upload_date, expiry_date)
+            )
+            conn.commit()
+            conn.close()
+            logger.debug("Database record created successfully")
+            
+            return jsonify({
+                "document_id": doc_id,
+                "share_url": f"/view/{doc_id}"
+            }), 201
+        except Exception as e:
+            logger.error(f"Database error: {str(e)}")
+            return jsonify({"error": f"Database error: {str(e)}"}), 500
     
+    logger.debug("File is not a PDF")
     return jsonify({"error": "File must be a PDF"}), 400
 
 @app.route("/view/<doc_id>", methods=["GET"])
