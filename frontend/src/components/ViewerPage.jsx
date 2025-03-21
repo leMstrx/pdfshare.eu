@@ -1,24 +1,18 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
-import { Document, Page, pdfjs } from 'react-pdf'
 import { supabase } from '../supabaseClient'
-
-// Set workerSrc for pdf.js
-// pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`
-pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js` //new line test
 
 function ViewerPage() {
   const { documentId } = useParams()
   const [documentInfo, setDocumentInfo] = useState(null)
-  const [pdfUrl, setPdfUrl] = useState(null)
   const [viewerName, setViewerName] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
   const [isRegistered, setIsRegistered] = useState(false)
-  const [numPages, setNumPages] = useState(null)
   const [pageNumber, setPageNumber] = useState(1)
   const [pageStart, setPageStart] = useState(null)
   const [isTracking, setIsTracking] = useState(false)
+  const [pdfUrl, setPdfUrl] = useState(null)
 
   // Fetch document info
   useEffect(() => {
@@ -41,18 +35,19 @@ function ViewerPage() {
         
         setDocumentInfo(data)
         
-        // Get PDF URL from Supabase Storage
-        const { data: storageData, error: storageError } = await supabase
+        // Get public URL for the PDF
+        const { data: publicUrlData } = supabase
           .storage
           .from('pdf')
-          .createSignedUrl(data.storage_path, 3600) // 1 hour expiry
+          .getPublicUrl(data.storage_path)
         
-        if (storageError) {
-          throw new Error(storageError.message || 'Failed to get PDF URL')
+        if (publicUrlData?.publicUrl) {
+          setPdfUrl(publicUrlData.publicUrl)
+        } else {
+          throw new Error('Failed to get public PDF URL')
         }
-        
-        setPdfUrl(storageData.signedUrl)
       } catch (err) {
+        console.error('Error in fetchDocumentInfo:', err)
         setError(err.message)
       } finally {
         setIsLoading(false)
@@ -65,15 +60,10 @@ function ViewerPage() {
   // Track page viewing time
   useEffect(() => {
     if (!isRegistered || !pageStart || !documentId) return
-    
-    // Track when component unmounts or page changes
     return () => {
-      const duration = Math.round((new Date() - pageStart) / 1000) // duration in seconds
-      
-      if (duration > 1 && !isTracking) { // Only track if user spent more than 1 second
+      const duration = Math.round((new Date() - pageStart) / 1000)
+      if (duration > 1 && !isTracking) {
         setIsTracking(true)
-        
-        // Insert view record in Supabase
         supabase
           .from('views')
           .insert([
@@ -84,9 +74,7 @@ function ViewerPage() {
               duration: duration
             }
           ])
-          .then(() => {
-            setIsTracking(false)
-          })
+          .then(() => setIsTracking(false))
           .catch((error) => {
             console.error('Error tracking view:', error)
             setIsTracking(false)
@@ -95,30 +83,16 @@ function ViewerPage() {
     }
   }, [documentId, pageNumber, pageStart, viewerName, isRegistered, isTracking])
 
-  // Set page start time when page changes
   useEffect(() => {
-    if (isRegistered) {
-      setPageStart(new Date())
-    }
+    if (isRegistered) setPageStart(new Date())
   }, [pageNumber, isRegistered])
 
   const handleNameSubmit = (e) => {
     e.preventDefault()
     if (viewerName.trim()) {
       setIsRegistered(true)
-      setPageStart(new Date()) // Start tracking first page
+      setPageStart(new Date())
     }
-  }
-
-  const onDocumentLoadSuccess = ({ numPages }) => {
-    setNumPages(numPages)
-  }
-
-  const changePage = (offset) => {
-    setPageNumber(prevPage => {
-      const newPage = prevPage + offset
-      return Math.min(Math.max(1, newPage), numPages || 1)
-    })
   }
 
   if (isLoading) {
@@ -134,7 +108,6 @@ function ViewerPage() {
       <div className="viewer-registration">
         <h2>View Document: {documentInfo.filename}</h2>
         <p>Enter your name to view this document:</p>
-        
         <form onSubmit={handleNameSubmit}>
           <input
             type="text"
@@ -149,43 +122,23 @@ function ViewerPage() {
     )
   }
 
+  // Display PDF in an iframe
   return (
     <div className="pdf-viewer">
       <h2>Viewing: {documentInfo.filename}</h2>
-      
-      <div className="document-container">
-        <Document
-          file={pdfUrl}
-          onLoadSuccess={onDocumentLoadSuccess}
-          loading={<div>Loading PDF...</div>}
-          error={<div>Failed to load PDF</div>}
-        >
-          <Page 
-            pageNumber={pageNumber} 
-            renderTextLayer={false}
-            renderAnnotationLayer={false}
+      <div className="document-container" style={{ height: '80vh' }}>
+        {pdfUrl && (
+          <iframe
+            src={pdfUrl}
+            width="100%"
+            height="100%"
+            style={{ border: 'none' }}
+            title={documentInfo.filename}
           />
-        </Document>
+        )}
       </div>
-      
       <div className="controls">
-        <button 
-          onClick={() => changePage(-1)} 
-          disabled={pageNumber <= 1}
-        >
-          Previous
-        </button>
-        
-        <span>
-          Page {pageNumber} of {numPages}
-        </span>
-        
-        <button 
-          onClick={() => changePage(1)} 
-          disabled={pageNumber >= numPages}
-        >
-          Next
-        </button>
+        <p>Viewing as: {viewerName}</p>
       </div>
     </div>
   )
