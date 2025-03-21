@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
+import { supabase } from '../supabaseClient'
 
 function AnalyticsPage() {
   const { documentId } = useParams()
@@ -14,21 +15,30 @@ function AnalyticsPage() {
       setIsLoading(true)
       try {
         // Fetch document info
-        const docResponse = await fetch(`http://localhost:5000/view/${documentId}`)
-        const docData = await docResponse.json()
+        const { data: documentData, error: documentError } = await supabase
+          .from('documents')
+          .select('*')
+          .eq('id', documentId)
+          .single()
         
-        if (!docResponse.ok) {
-          throw new Error(docData.error || 'Failed to fetch document info')
+        if (documentError) {
+          throw new Error(documentError.message || 'Failed to fetch document info')
         }
         
-        setDocumentInfo(docData)
+        setDocumentInfo(documentData)
         
         // Fetch analytics data
-        const analyticsResponse = await fetch(`http://localhost:5000/analytics/${documentId}`)
-        if (analyticsResponse.ok) {
-          const analyticsData = await analyticsResponse.json()
-          setAnalyticsData(analyticsData)
+        const { data: viewsData, error: viewsError } = await supabase
+          .from('views')
+          .select('*')
+          .eq('document_id', documentId)
+          .order('timestamp', { ascending: true })
+        
+        if (viewsError) {
+          throw new Error(viewsError.message || 'Failed to fetch views data')
         }
+        
+        setAnalyticsData(viewsData || [])
         
         // Create share URL
         const baseUrl = window.location.origin
@@ -44,25 +54,7 @@ function AnalyticsPage() {
     fetchData()
   }, [documentId])
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(shareUrl)
-      .then(() => {
-        alert('Share link copied to clipboard!')
-      })
-      .catch(err => {
-        console.error('Failed to copy: ', err)
-      })
-  }
-
-  if (isLoading) {
-    return <div className="loading">Loading analytics data...</div>
-  }
-
-  if (error) {
-    return <div className="error">Error: {error}</div>
-  }
-
-  // Process analytics data for better display
+  // Process analytics data for display
   const viewerStats = {}
   analyticsData.forEach(view => {
     if (!viewerStats[view.viewer_name]) {
@@ -88,9 +80,27 @@ function AnalyticsPage() {
     if (viewTime > stats.lastView) stats.lastView = viewTime
   })
 
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(shareUrl)
+      .then(() => {
+        alert('Share link copied to clipboard!')
+      })
+      .catch(err => {
+        console.error('Failed to copy: ', err)
+      })
+  }
+
+  if (isLoading) {
+    return <div className="loading">Loading analytics data...</div>
+  }
+
+  if (error) {
+    return <div className="error">Error: {error}</div>
+  }
+
   return (
     <div className="analytics-container">
-      <h2>Analytics for {documentInfo.filename}</h2>
+      <h2>Analytics for {documentInfo?.filename}</h2>
       
       <div className="share-section">
         <h3>Share Document</h3>

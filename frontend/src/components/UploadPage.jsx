@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { supabase } from '../supabaseClient'
 
 function UploadPage() {
   const [file, setFile] = useState(null)
@@ -28,31 +29,50 @@ function UploadPage() {
     setIsUploading(true)
     setError(null)
   
-    const formData = new FormData()
-    formData.append('file', file)
-  
     try {
       console.log('Attempting to upload file:', file.name)
       
-      const response = await fetch('http://localhost:5000/upload', {
-        method: 'POST',
-        body: formData,
-        // Add these headers to help with debugging
-        // credentials: 'omit',
-        // mode: 'cors',
-      })
-  
-      console.log('Response status:', response.status)
+      // Generate a unique filename
+      const fileExt = file.name.split('.').pop()
+      const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`
+      const filePath = `${fileName}`
       
-      const data = await response.json()
-      console.log('Response data:', data)
-  
-      if (!response.ok) {
-        throw new Error(data.error || 'Upload failed')
+      // Upload file to Supabase Storage
+      const { data: fileData, error: uploadError } = await supabase.storage
+        .from('pdf')
+        .upload(filePath, file)
+      
+      if (uploadError) {
+        throw new Error(uploadError.message || 'Error uploading file')
       }
-  
-      // Navigate to analytics page with the document ID
-      navigate(`/analytics/${data.document_id}`)
+      
+      console.log('File uploaded successfully:', fileData.path)
+      
+      // Calculate expiry date (60 days from now)
+      const expiryDate = new Date()
+      expiryDate.setDate(expiryDate.getDate() + 60)
+      
+      // Insert record into documents table
+      const { data: documentData, error: dbError } = await supabase
+        .from('documents')
+        .insert([
+          { 
+            filename: file.name,
+            expiry_date: expiryDate.toISOString(),
+            storage_path: fileData.path
+          }
+        ])
+        .select()
+        .single()
+      
+      if (dbError) {
+        throw new Error(dbError.message || 'Error saving document information')
+      }
+      
+      console.log('Document record created:', documentData)
+      
+      // Navigate to analytics page
+      navigate(`/analytics/${documentData.id}`)
     } catch (err) {
       console.error('Upload error:', err)
       setError(`Upload failed: ${err.message}`)
