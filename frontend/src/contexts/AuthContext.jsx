@@ -30,8 +30,8 @@ export function AuthProvider({ children }) {
         
         // Simple validation
         if (email === 'user@example.com' && password === 'password') {
-          setUser(MOCK_USER);
-          return { user: MOCK_USER, error: null };
+          setUser(mockUser);
+          return { user: mockUser, error: null };
         } else {
           throw new Error('Invalid email or password');
         }
