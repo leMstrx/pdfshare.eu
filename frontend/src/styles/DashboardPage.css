@@ -1,0 +1,225 @@
+.dashboard-page {
+    padding-bottom: var(--space-2xl);
+  }
+  
+  .dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-xl);
+  }
+  
+  /* Stats */
+  .dashboard-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-lg);
+    margin-bottom: var(--space-xl);
+  }
+  
+  .stat-card {
+    background-color: var(--color-card);
+    border-radius: var(--border-radius);
+    padding: var(--space-lg);
+    box-shadow: var(--shadow-md);
+    text-align: center;
+  }
+  
+  .stat-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    line-height: 1.2;
+  }
+  
+  .stat-label {
+    color: var(--color-text-light);
+    font-weight: 500;
+  }
+  
+  /* Documents List */
+  .documents-list {
+    background-color: var(--color-card);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-md);
+    padding: var(--space-lg);
+  }
+  
+  .documents-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-lg);
+    padding-bottom: var(--space-md);
+    border-bottom: 1px solid var(--color-border);
+  }
+  
+  .documents-filters {
+    display: flex;
+    gap: var(--space-md);
+  }
+  
+  .documents-filter,
+  .documents-sort {
+    padding: var(--space-xs) var(--space-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius);
+    background-color: white;
+    font-size: 0.875rem;
+  }
+  
+  .documents-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--space-lg);
+  }
+  
+  .document-card {
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+  }
+  
+  .document-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+  }
+  
+  .document-header {
+    display: flex;
+    align-items: center;
+    padding: var(--space-md);
+    border-bottom: 1px solid var(--color-border);
+    background-color: #f9fafb;
+  }
+  
+  .document-icon {
+    color: var(--color-primary);
+    margin-right: var(--space-sm);
+    flex-shrink: 0;
+  }
+  
+  .document-title {
+    flex: 1;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .document-badge {
+    padding: 0.125rem var(--space-sm);
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-left: var(--space-sm);
+  }
+  
+  .public {
+    background-color: #ecfdf5;
+    color: #047857;
+  }
+  
+  .private {
+    background-color: #eff6ff;
+    color: #1d4ed8;
+  }
+  
+  .document-info {
+    padding: var(--space-md);
+    border-bottom: 1px solid var(--color-border);
+  }
+  
+  .document-date,
+  .document-views {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: var(--space-xs);
+    font-size: 0.875rem;
+  }
+  
+  .document-label {
+    color: var(--color-text-light);
+  }
+  
+  .expired {
+    color: var(--color-error);
+  }
+  
+  .expiring-soon {
+    color: var(--color-warning);
+  }
+  
+  .document-actions {
+    display: flex;
+    padding: var(--space-md);
+    gap: var(--space-sm);
+  }
+  
+  .document-action {
+    flex: 1;
+    text-align: center;
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--border-radius);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  
+  .view {
+    background-color: #eff6ff;
+    color: #1d4ed8;
+  }
+  
+  .view:hover {
+    background-color: #dbeafe;
+  }
+  
+  .analytics {
+    background-color: #f0f9ff;
+    color: #0369a1;
+  }
+  
+  .analytics:hover {
+    background-color: #e0f2fe;
+  }
+  
+  .delete {
+    background-color: #fef2f2;
+    color: #b91c1c;
+    border: none;
+    font-family: inherit;
+  }
+  
+  .delete:hover {
+    background-color: #fee2e2;
+  }
+  
+  @media (max-width: 768px) {
+    .dashboard-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-md);
+    }
+    
+    .documents-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-md);
+    }
+    
+    .documents-filters {
+      width: 100%;
+    }
+    
+    .documents-filter,
+    .documents-sort {
+      flex: 1;
+    }
+    
+    .documents-grid {
+      grid-template-columns: 1fr;
+    }
+  }

@@ -1,0 +1,204 @@
+.home-page {
+    padding-bottom: var(--space-2xl);
+  }
+  
+  /* Hero Section */
+  .hero {
+    margin: 0 -1rem;
+    padding: var(--space-2xl) var(--space-md);
+    text-align: center;
+    margin-bottom: var(--space-2xl);
+    background-color: rgba(195, 207, 244, 0.15);
+    border-radius: var(--border-radius-lg);
+  }
+  
+  .hero-content {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  
+  .hero-title {
+    font-size: 2.75rem;
+    line-height: 1.2;
+    margin-bottom: var(--space-lg);
+  }
+  
+  .hero-title span {
+    color: var(--color-primary);
+    position: relative;
+    display: inline-block;
+  }
+  
+  .hero-title span::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -5px;
+    height: 3px;
+    background-color: var(--color-primary-light);
+    border-radius: 2px;
+  }
+  
+  .hero-description {
+    font-size: 1.25rem;
+    color: var(--color-text-light);
+    max-width: 600px;
+    margin: 0 auto var(--space-xl);
+  }
+  
+  .hero-buttons {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-md);
+  }
+  
+  .hero-button {
+    padding: var(--space-md) var(--space-xl);
+    font-size: 1.125rem;
+  }
+  
+  /* Features Section */
+  .features {
+    margin-bottom: var(--space-2xl);
+  }
+  
+  .section-title {
+    text-align: center;
+    margin-bottom: var(--space-xl);
+    font-size: 2rem;
+  }
+  
+  .features-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--space-xl);
+  }
+  
+  .feature-card {
+    background-color: var(--color-card);
+    border-radius: var(--border-radius);
+    padding: var(--space-xl);
+    box-shadow: var(--shadow-md);
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+  }
+  
+  .feature-icon {
+    background-color: rgba(195, 207, 244, 0.3);
+    color: var(--color-primary);
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto var(--space-lg);
+  }
+  
+  .feature-title {
+    margin-bottom: var(--space-md);
+    font-size: 1.5rem;
+  }
+  
+  .feature-description {
+    color: var(--color-text-light);
+  }
+  
+  /* Benefits Section */
+  .benefits {
+    margin-bottom: var(--space-2xl);
+  }
+  
+  .benefits-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--space-xl);
+  }
+  
+  .benefit {
+    position: relative;
+    padding: var(--space-lg) var(--space-lg) var(--space-lg) calc(var(--space-lg) + 24px);
+  }
+  
+  .benefit::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: var(--space-lg);
+    width: 4px;
+    height: 24px;
+    background-color: var(--color-primary);
+    border-radius: 2px;
+  }
+  
+  .benefit-title {
+    margin-bottom: var(--space-sm);
+    font-size: 1.25rem;
+  }
+  
+  .benefit-description {
+    color: var(--color-text-light);
+  }
+  
+  /* CTA Section */
+  .cta {
+    background-color: var(--color-card);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: var(--space-2xl);
+    text-align: center;
+    margin-top: var(--space-2xl);
+  }
+  
+  .cta-content {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  
+  .cta-title {
+    margin-bottom: var(--space-md);
+    font-size: 2rem;
+  }
+  
+  .cta-description {
+    color: var(--color-text-light);
+    margin-bottom: var(--space-xl);
+    font-size: 1.125rem;
+  }
+  
+  .cta-button {
+    padding: var(--space-md) var(--space-xl);
+    font-size: 1.125rem;
+  }
+  
+  /* Media Queries */
+  @media (max-width: 768px) {
+    .hero-title {
+      font-size: 2rem;
+    }
+    
+    .hero-description {
+      font-size: 1rem;
+    }
+    
+    .hero-buttons {
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+    
+    .features-container,
+    .benefits-list {
+      grid-template-columns: 1fr;
+    }
+    
+    .section-title,
+    .cta-title {
+      font-size: 1.75rem;
+    }
+  }
