@@ -1,108 +1,145 @@
-import { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Document, Page, pdfjs } from 'react-pdf';
+import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
+import 'react-pdf/dist/esm/Page/TextLayer.css';
 import '../styles/ViewerPage.css';
 
+// Set the worker source to use the CDN-hosted worker
+pdfjs.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+
 function ViewerPage() {
-  const { documentId } = useParams();
-  const [viewerName, setViewerName] = useState('');
-  const [isRegistered, setIsRegistered] = useState(false);
+  const [numPages, setNumPages] = useState(null);
   const [pageNumber, setPageNumber] = useState(1);
+  const [error, setError] = useState(null);
+  const [scale, setScale] = useState(1.0);
+  const [isLoading, setIsLoading] = useState(true);
   
-  // Mock document data (will be fetched from Supabase later)
-  const mockDocument = {
-    id: documentId,
-    filename: 'Sample Document.pdf',
-    totalPages: 5,
-    // This is a base64 PDF for demonstration only
-    pdfUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf'
+  // Use the local PDF file
+  const pdfUrl = '/pdfs/test.pdf';
+  
+  const onDocumentLoadSuccess = ({ numPages }) => {
+    console.log('PDF loaded successfully with', numPages, 'pages');
+    setNumPages(numPages);
+    setIsLoading(false);
+    setError(null);
   };
   
-  const handleNameSubmit = (e) => {
-    e.preventDefault();
-    if (viewerName.trim()) {
-      setIsRegistered(true);
-    }
+  const onDocumentLoadError = (err) => {
+    console.error('Error loading PDF:', err);
+    setError(`Failed to load the document: ${err.message}`);
+    setIsLoading(false);
   };
   
-  const goToPreviousPage = () => {
+  function goToPrevPage() {
     if (pageNumber > 1) {
       setPageNumber(pageNumber - 1);
     }
-  };
+  }
   
-  const goToNextPage = () => {
-    if (pageNumber < mockDocument.totalPages) {
+  function goToNextPage() {
+    if (pageNumber < numPages) {
       setPageNumber(pageNumber + 1);
     }
-  };
+  }
   
-  if (!isRegistered) {
-    return (
-      <div className="viewer-page">
-        <div className="viewer-registration card">
-          <h2>View Document: {mockDocument.filename}</h2>
-          <p className="viewer-instruction">
-            Enter your name to view this document:
-          </p>
-          
-          <form onSubmit={handleNameSubmit} className="viewer-form">
-            <input
-              type="text"
-              value={viewerName}
-              onChange={(e) => setViewerName(e.target.value)}
-              placeholder="Your Name"
-              required
-              className="input"
-            />
-            <button type="submit" className="btn btn-primary">
-              View Document
-            </button>
-          </form>
-        </div>
-      </div>
-    );
+  function zoomIn() {
+    setScale(prevScale => Math.min(prevScale + 0.2, 2.0));
+  }
+  
+  function zoomOut() {
+    setScale(prevScale => Math.max(prevScale - 0.2, 0.6));
   }
   
   return (
     <div className="viewer-page">
       <div className="viewer-container">
-        <h2>Viewing: {mockDocument.filename}</h2>
+        <h2>PDF Viewer</h2>
         
         <div className="viewer-controls">
           <div className="page-navigation">
             <button 
-              onClick={goToPreviousPage} 
+              onClick={goToPrevPage} 
               disabled={pageNumber <= 1}
               className="nav-button"
             >
               &lt; Previous
             </button>
             
-            <span className="page-display">
-              Page {pageNumber} of {mockDocument.totalPages}
-            </span>
+            <p className="page-display">
+              Page {pageNumber} of {numPages || '...'}
+            </p>
             
             <button 
               onClick={goToNextPage} 
-              disabled={pageNumber >= mockDocument.totalPages}
+              disabled={pageNumber >= numPages}
               className="nav-button"
             >
               Next &gt;
             </button>
           </div>
+          
+          <div className="zoom-controls">
+            <button 
+              onClick={zoomOut} 
+              className="zoom-button"
+              disabled={scale <= 0.6}
+            >
+              -
+            </button>
+            <span className="zoom-level">{Math.round(scale * 100)}%</span>
+            <button 
+              onClick={zoomIn} 
+              className="zoom-button"
+              disabled={scale >= 2.0}
+            >
+              +
+            </button>
+          </div>
         </div>
         
         <div className="pdf-container">
-          {/* For the placeholder UI, just use an iframe to display the PDF */}
-          <iframe 
-            src={mockDocument.pdfUrl} 
-            title={mockDocument.filename}
-            className="pdf-iframe"
-          />
-        </div>
-        
-        <div className="viewer-info">
-          <p>Viewing as: <strong>{viewerName}</strong></p>
+          {error ? (
+            <div className="pdf-error">
+              <p>{error}</p>
+              <button
+                onClick={() => {
+                  setError(null);
+                  setIsLoading(true);
+                }}
+                className="btn btn-primary"
+              >
+                Try Again
+              </button>
+            </div>
+          ) : (
+            <>
+              {isLoading && (
+                <div className="pdf-loading">Loading document...</div>
+              )}
+              <Document
+                file={pdfUrl}
+                onLoadSuccess={onDocumentLoadSuccess}
+                onLoadError={onDocumentLoadError}
+                loading={null}
+                className="pdf-document"
+                options={{
+                  cMapUrl: 'https://unpkg.com/pdfjs-dist@3.11.174/cmaps/',
+                  cMapPacked: true,
+                  standardFontDataUrl: 'https://unpkg.com/pdfjs-dist@3.11.174/standard_fonts/'
+                }}
+              >
+                <Page 
+                  pageNumber={pageNumber}
+                  scale={scale}
+                  className="pdf-page"
+                  loading={<div className="pdf-loading">Loading page...</div>}
+                  error={<div>Error loading page {pageNumber}</div>}
+                  renderTextLayer={true}
+                  renderAnnotationLayer={false}
+                />
+              </Document>
+            </>
+          )}
         </div>
       </div>
     </div>

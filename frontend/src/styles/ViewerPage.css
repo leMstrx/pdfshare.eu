@@ -104,3 +104,115 @@
       height: 60vh;
     }
   }
+
+.pdf-document {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  min-height: 100%;
+}
+
+.pdf-page {
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  margin: 0 auto;
+}
+
+.pdf-error {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  color: var(--color-error);
+  text-align: center;
+  padding: var(--space-xl);
+  background-color: #fef2f2;
+  border-radius: var(--border-radius);
+  gap: var(--space-lg);
+}
+
+.pdf-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  font-weight: 500;
+  color: var(--color-text-light);
+  text-align: center;
+  padding: var(--space-xl);
+}
+
+.zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.zoom-button {
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.zoom-button:hover:not(:disabled) {
+  background-color: var(--color-primary-dark);
+}
+
+.zoom-button:disabled {
+  background-color: var(--color-text-lighter);
+  cursor: not-allowed;
+}
+
+.zoom-level {
+  font-weight: 500;
+  min-width: 60px;
+  text-align: center;
+}
+
+.viewer-controls {
+  background-color: var(--color-card);
+  border-radius: var(--border-radius) var(--border-radius) 0 0;
+  padding: var(--space-md);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid var(--color-border);
+  border-bottom: none;
+}
+
+/* Make the PDF container properly sized and scrollable */
+.pdf-container {
+  height: 70vh;
+  background-color: #f0f0f0;
+  border: 1px solid var(--color-border);
+  border-radius: 0 0 var(--border-radius) var(--border-radius);
+  overflow: auto;
+  position: relative;
+}
+
+@media (max-width: 768px) {
+  .viewer-controls {
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+  
+  .page-navigation {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .zoom-controls {
+    width: 100%;
+    justify-content: center;
+  }
+}
